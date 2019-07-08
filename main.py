@@ -2,11 +2,12 @@ import curses
 import sys
 import time
 import datetime
+import array
 
 #import piplates.RELAYplate as RELAY
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':`
 
     import time
     import datetime
@@ -21,6 +22,7 @@ if __name__ == '__main__':
     count = 0
 
     startTime = 615
+    runTimes = array('i',[10,15,10,0])
     # integar division in Python 2.x
     stHour = startTime / 100
     stMin  = startTime - stHour * 100
@@ -50,7 +52,17 @@ if __name__ == '__main__':
         scr.addstr(9, 0, "stMin: " + str(stMin))
         scr.addstr(10, 0, "stMins: " + str(stMins))
        
-        
+        if dtNowMinute > stMins:
+            if dtNowMinute < stMins + runTimes[0] + runTimes[1] + runTimes[2] + runTimes[3]:
+                scr.addstr(11, 0, "v4 ON")
+            if dtNowMinute < stMins + runTimes[0] + runTimes[1] + runTimes[2]:
+                scr.addstr(12, 0, "v3 ON")
+            if dtNowMinute < stMins + runTimes[0] + runTimes[1]:
+                scr.addstr(13, 0, "v2 ON")
+            if dtNowMinute < stMins + runTimes[0]:
+                scr.addstr(14, 0, "v1 ON")
+
+
 
  
         scr.refresh()
