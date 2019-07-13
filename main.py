@@ -3,6 +3,7 @@ import sys
 import time
 import datetime
 import array
+import json
 
 #import piplates.RELAYplate as RELAY
 
@@ -18,18 +19,29 @@ if __name__ == '__main__':
     scr.keypad(1)
     scr.nodelay(1)
 
-    keepGoing = True
+
+    # Read conf file
+    confFile = open("irragation.conf", "r")
+    confData = confFile.read()
+    confJson = json.loads(confData)
+    #rt = confJson["runTimes"]
+    scr.addstr(28, 0, str(confJson["startTime"]))
+    scr.addstr(29, 0, str(confJson["runTimes"]))
+    
 
     # 24 hour loal time 600 = 6am, 1450 = 2:50 pm
-    startTime = 1359
+    startTime = confJson["startTime"]
     # Rows are valves, columns are days 0 - 6 for Mon - Sun, valve run times
-    runTimes = [  [10, 0, 2, 2,   2, 0, 10],
-                    [0, 30, 0, 0, 1, 0, 0],
-                    [5, 5, 2, 2,  0, 0, 5],
-                    [0, 0, 0, 0,  1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0]]
+    #runTimes = [  [10, 0, 2, 2,   2, 0, 10],
+    #                [0, 30, 0, 0, 1, 0, 0],
+    #                [5, 5, 2, 2,  0, 0, 5],
+    #                [0, 0, 0, 0,  1, 1, 0],
+    #                [0, 0, 0, 0, 0, 0, 0],
+    #                [0, 0, 0, 0, 0, 0, 0],
+    #                [0, 0, 0, 0, 0, 0, 0]]
+        
+    runTimes = confJson["runTimes"]
+
 
 
     # integar division in Python 2.x
@@ -37,6 +49,7 @@ if __name__ == '__main__':
     stMin  = startTime - stHour * 100
     stMin  = stMin + stHour * 60
 
+    keepGoing = True
     while keepGoing:
         dtn = datetime.datetime.now()
 
