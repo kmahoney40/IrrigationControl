@@ -4,6 +4,7 @@ import time
 import datetime
 import array
 import json
+import piplates.RELAYplate as RELAY
 
 #import piplates.RELAYplate as RELAY
 
@@ -39,15 +40,18 @@ if __name__ == '__main__':
     #                [0, 0, 0, 0, 0, 0, 0],
     #                [0, 0, 0, 0, 0, 0, 0],
     #                [0, 0, 0, 0, 0, 0, 0]]
-        
+    pid = confJson["pid"]        
     runTimes = confJson["runTimes"]
-
-
 
     # integar division in Python 2.x
     stHour = startTime / 100
     stMin  = startTime - stHour * 100
     stMin  = stMin + stHour * 60
+
+    # Start with all valves off
+    for v in range(len(runTimes)):
+        RELAY.relayOFF(pid, v+1)
+
 
     keepGoing = True
     while keepGoing:
@@ -80,8 +84,10 @@ if __name__ == '__main__':
                 scr.addstr(21 + v, 0, "ltMin: " + str(ltMin) + " - gtMin: " + str(gtMin))
                 if ltMin <= dtNowMin and dtNowMin < gtMin:
                     scr.addstr(14 + v, 0, "Valve" + str(v) + "  on")
+                    RELAY.relayON(pid, v+1)
                 else:
                     scr.addstr(14 + v, 0, "Valve" + str(v) + " off")
+                    RELAY.relayOFF(pid, v+1)
 
         scr.refresh()
     
@@ -93,6 +99,9 @@ if __name__ == '__main__':
 
     # while keepGoing
 
+    # Turn off all valves on exit
+    for v in range(len(runTimes)):
+        RELAY.relayOFF(pid, v+1)
     curses.endwin()
 
 
