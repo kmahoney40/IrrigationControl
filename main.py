@@ -9,8 +9,8 @@ import piplates.RELAYplate as RELAY
 #import piplates.RELAYplate as RELAY
 
 
-if __name__ == '__main__':
 
+def main(scr):
     import time
     import datetime
 
@@ -25,23 +25,14 @@ if __name__ == '__main__':
     confFile = open("irragation.conf", "r")
     confData = confFile.read()
     confJson = json.loads(confData)
-    #rt = confJson["runTimes"]
-    scr.addstr(28, 0, str(confJson["startTime"]))
-    scr.addstr(29, 0, str(confJson["runTimes"]))
+    
+    pid = confJson["pid"]        
+    runTimes = confJson["runTimes"]
+    scr.addstr(1, 0, "startTime: " + str(confJson["startTime"]) + " pid:" + str(pid))
     
 
     # 24 hour loal time 600 = 6am, 1450 = 2:50 pm
     startTime = confJson["startTime"]
-    # Rows are valves, columns are days 0 - 6 for Mon - Sun, valve run times
-    #runTimes = [  [10, 0, 2, 2,   2, 0, 10],
-    #                [0, 30, 0, 0, 1, 0, 0],
-    #                [5, 5, 2, 2,  0, 0, 5],
-    #                [0, 0, 0, 0,  1, 1, 0],
-    #                [0, 0, 0, 0, 0, 0, 0],
-    #                [0, 0, 0, 0, 0, 0, 0],
-    #                [0, 0, 0, 0, 0, 0, 0]]
-    pid = confJson["pid"]        
-    runTimes = confJson["runTimes"]
 
     # integar division in Python 2.x
     stHour = startTime / 100
@@ -66,13 +57,11 @@ if __name__ == '__main__':
         dtNowMin  = dtNow.minute
         dtNowMin += dtNowHour * 60 - stMin
         # Clear extra characters for negative and 3 or 4 digit times
-        scr.addstr(6, 0, "dtNowMin: " + str(dtNowMin) + "      ")
+        scr.addstr(2, 0, "dtNowMin: " + str(dtNowMin) + "      ")
 
-
-
-        scr.addstr(7, 0, "startTime: " + str(startTime))
-        scr.addstr(10, 0, "stMins: " + str(stMin))
-        scr.addstr(11, 0, "dtDay: " + str(dtDay))
+        scr.addstr(3, 0, "startTime: " + str(startTime))
+        scr.addstr(4, 0, "stMins: " + str(stMin))
+        scr.addstr(5, 0, "dtDay: " + str(dtDay))
 
         gtMin = 0
         ltMin = 0
@@ -81,12 +70,12 @@ if __name__ == '__main__':
                 gtMin += runTimes[v][dtDay]
                 if v > 0:
                     ltMin += runTimes[v-1][dtDay]
-                scr.addstr(21 + v, 0, "ltMin: " + str(ltMin) + " - gtMin: " + str(gtMin))
+                scr.addstr(13 + v, 0, "ltMin: " + str(ltMin) + " - gtMin: " + str(gtMin))
                 if ltMin <= dtNowMin and dtNowMin < gtMin:
-                    scr.addstr(14 + v, 0, "Valve" + str(v) + "  on")
+                    scr.addstr(6 + v, 0, "Valve" + str(v) + "  on")
                     RELAY.relayON(pid, v+1)
                 else:
-                    scr.addstr(14 + v, 0, "Valve" + str(v) + " off")
+                    scr.addstr(6 + v, 0, "Valve" + str(v) + " off")
                     RELAY.relayOFF(pid, v+1)
 
         scr.refresh()
@@ -104,5 +93,14 @@ if __name__ == '__main__':
         RELAY.relayOFF(pid, v+1)
     curses.endwin()
 
+# def main(scr)
+
+
+if __name__ == '__main__':
+    try:
+        curses.wrapper(main)
+    finally:
+        for v in range(7):
+            RELAY.relayOFF(0, v+1)
 
 # if __name__
