@@ -33,6 +33,7 @@ def main(scr):
 
     # 24 hour loal time 600 = 6am, 1450 = 2:50 pm
     startTime = confJson["startTime"]
+    manTime = 2.0
 
     # integar division in Python 2.x
     stHour = startTime / 100
@@ -43,14 +44,27 @@ def main(scr):
     for v in range(len(runTimes)):
         RELAY.relayOFF(pid, v+1)
 
-
+    scr.addstr(30, 0, "Press 'q' to quit or 'm'  to enter manual mode     ")
     keepGoing = True
+    manualMode = 0
+    manualStart = 0
     while keepGoing:
         dtn = datetime.datetime.now()
 
         scr.addstr(0, 0, "dtn: " + str(dtn))
 
         #dtNow is local 24hour time
+        c = scr.getch()
+        if c != curses.ERR:
+            if chr(c) == 'q':
+                keepGoing = False
+            if chr(c) == 'm':
+                manualMode = 1
+                scr.addstr(30, 0, "Press 'Esc' to return to standard mode, 'q' to quit")
+            if c == 27:
+                manualMode = 0
+                scr.addstr(30, 0, "Press 'q' to quit or 'm' to enter manual mode      ")
+        
         dtNow = datetime.datetime.now()
         dtDay = datetime.datetime.today().weekday()
         dtNowHour = dtNow.hour
@@ -63,28 +77,42 @@ def main(scr):
         scr.addstr(4, 0, "stMins: " + str(stMin))
         scr.addstr(5, 0, "dtDay: " + str(dtDay))
 
-        gtMin = 0
-        ltMin = 0
-        if dtNowMin >= 0: 
-            for v in range(len(runTimes)):
-                gtMin += runTimes[v][dtDay]
-                if v > 0:
-                    ltMin += runTimes[v-1][dtDay]
-                scr.addstr(13 + v, 0, "ltMin: " + str(ltMin) + " - gtMin: " + str(gtMin))
-                if ltMin <= dtNowMin and dtNowMin < gtMin:
-                    scr.addstr(6 + v, 0, "Valve" + str(v) + "  on")
-                    RELAY.relayON(pid, v+1)
-                else:
-                    scr.addstr(6 + v, 0, "Valve" + str(v) + " off")
-                    RELAY.relayOFF(pid, v+1)
+        if manualMode:
+            if manualMode == 1:
+                manualMode += 1
+                for v in range(14):
+                    scr.addstr(6 + v, 0, "                                         ")
+            if manualMode > 1:
+                delta = time.time() - manualStart
+                scr.addstr(6, 0, "delta: " + str(delta))
+                scr.addstr(7, 0, "delta: " + str(round(delta, 4)) + "             ")
+            
+                #manTime = manTime * 60.0 - delta
+                scr.addstr(9, 0, "manTime: " + str(manTime))
+
+            manualStart = time.time()
+            scr.addstr(8, 0, "manualStart: " + str(manualStart))
+            
+        else:
+            gtMin = 0
+            ltMin = 0
+            if dtNowMin >= 0: 
+                for v in range(len(runTimes)):
+                    gtMin += runTimes[v][dtDay]
+                    if v > 0:
+                        ltMin += runTimes[v-1][dtDay]
+                    scr.addstr(13 + v, 0, "ltMin: " + str(ltMin) + ", gtMin: " + str(gtMin))
+                    if ltMin <= dtNowMin and dtNowMin < gtMin:
+                        scr.addstr(6 + v, 0, "Valve" + str(v) + "  on")
+                        RELAY.relayON(pid, v+1)
+                    else:
+                        scr.addstr(6 + v, 0, "Valve" + str(v) + " off")
+                        RELAY.relayOFF(pid, v+1)
+        # if manualModd: else:
 
         scr.refresh()
-    
-        c = scr.getch()
-        if c != curses.ERR:
-            keepGoing = False
-    
         time.sleep(1)
+
 
     # while keepGoing
 
