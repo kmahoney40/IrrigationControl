@@ -33,7 +33,8 @@ def main(scr):
 
     # 24 hour loal time 600 = 6am, 1450 = 2:50 pm
     startTime = confJson["startTime"]
-    manTime = 2.0
+    manTimes = [0, 0, 0, 0, 0, 0, 0]
+    manStart =  0
 
     # integar division in Python 2.x
     stHour = startTime / 100
@@ -44,32 +45,87 @@ def main(scr):
     for v in range(len(runTimes)):
         RELAY.relayOFF(pid, v+1)
 
-    scr.addstr(30, 0, "Press 'q' to quit or 'm'  to enter manual mode     ")
+    scr.addstr(29, 0, "Press 'q' to quit or 'm' to enter manual mode, 'r' to run manual mode     ")
     keepGoing = True
     manualMode = 0
+    runManMode = False
     manualStart = 0
     while keepGoing:
         dtn = datetime.datetime.now()
 
         scr.addstr(0, 0, "dtn: " + str(dtn))
 
-        #dtNow is local 24hour time
-        c = scr.getch()
-        if c != curses.ERR:
-            if chr(c) == 'q':
-                keepGoing = False
-            if chr(c) == 'm':
-                manualMode = 1
-                scr.addstr(30, 0, "Press 'Esc' to return to standard mode, 'q' to quit")
-            if c == 27:
-                manualMode = 0
-                scr.addstr(30, 0, "Press 'q' to quit or 'm' to enter manual mode      ")
         
         dtNow = datetime.datetime.now()
         dtDay = datetime.datetime.today().weekday()
         dtNowHour = dtNow.hour
         dtNowMin  = dtNow.minute
         dtNowMin += dtNowHour * 60 - stMin
+        
+
+        c = scr.getch()
+        if c != curses.ERR:
+            if chr(c) == 'q':
+                keepGoing = False
+            if chr(c) == 'm':
+                manualMode = 1
+                manStart = 0
+                scr.addstr(29, 0, "Press 'Esc' to return to standard mode, 'q' to quit            ")
+            if chr(c) == 'r':
+                if manualMode:
+                    runManMode = True
+            if c == 27:
+                manualMode = 0
+                runManMode = False
+                for v in range(len(manTimes)):
+                    RELAY.relayOFF(pid, v+1)       
+                scr.addstr(29, 0, "Press 'q' to quit or 'm' to enter manual mode      ")
+            if chr(c) == 'a':
+                if manTimes[0] < 100:
+                    manTimes[0] += 1
+            if chr(c) == 's':
+                if manTimes[1] < 100:
+                    manTimes[1] += 1
+            if chr(c) == 'd':
+                if manTimes[2] < 100:
+                    manTimes[2] += 1
+            if chr(c) == 'f':
+                if manTimes[3] < 100:
+                    manTimes[3] += 1
+            if chr(c) == 'g':
+                if manTimes[4] < 100:
+                    manTimes[4] += 1
+            if chr(c) == 'h':
+                if manTimes[5] < 100:
+                    manTimes[5] += 1
+            if chr(c) == 'j':
+                if manTimes[6] < 100:
+                    manTimes[6] += 1
+
+
+            if chr(c) == 'z':
+                if manTimes[0]:
+                    manTimes[0] -= 1
+            if chr(c) == 'x':
+                if manTimes[1]:
+                    manTimes[1] -= 1
+            if chr(c) == 'c':
+                if manTimes[2]:
+                    manTimes[2] -= 1
+            if chr(c) == 'v':
+                if manTimes[3]:
+                    manTimes[3] -= 1
+            if chr(c) == 'b':
+                if manTimes[4]:
+                    manTimes[4] -= 1
+            if chr(c) == 'n':
+                if manTimes[5]:
+                    manTimes[5] -= 1
+            if chr(c) == 'm':
+                if manTimes[6]:
+                    manTimes[6] -= 1
+
+        
         # Clear extra characters for negative and 3 or 4 digit times
         scr.addstr(2, 0, "dtNowMin: " + str(dtNowMin) + "      ")
 
@@ -80,19 +136,36 @@ def main(scr):
         if manualMode:
             if manualMode == 1:
                 manualMode += 1
+                manStart = dtNowMin
                 for v in range(14):
                     scr.addstr(6 + v, 0, "                                         ")
-            if manualMode > 1:
-                delta = time.time() - manualStart
-                scr.addstr(6, 0, "delta: " + str(delta))
-                scr.addstr(7, 0, "delta: " + str(round(delta, 4)) + "             ")
             
-                #manTime = manTime * 60.0 - delta
-                scr.addstr(9, 0, "manTime: " + str(manTime))
+            scr.addstr(8, 0, "Up: 'a' 's' 'd' 'f' 'g' 'h' 'j'")
+            for v in range(len(manTimes)):
+                scr.addstr(9, 4 + v*4, str(manTimes[v])) 
+            scr.addstr(10, 0, "Dn: 'z' 'x' 'c' 'v' 'b' 'n' 'm'")
+            scr.addstr(28, 0, "runManMode: " + str(runManMode) + "  ")
 
-            manualStart = time.time()
-            scr.addstr(8, 0, "manualStart: " + str(manualStart))
-            
+            if runManMode:
+                sumManTimes = 0
+                lastSumManTimes = 0
+                for v in range(len(manTimes)):
+                    sumManTimes += manTimes[v]
+                    if manStart + lastSumManTimes <= dtNowMin and dtNowMin < manStart + sumManTimes:     
+                        scr.addstr(11+v, 0, "ManValve " + str(v) + ": ON       ")
+                        RELAY.relayON(pid, v+1)
+                    else:
+                        scr.addstr(11+v, 0, "ManValve " + str(v) + ": OFF      ")
+                        RELAY.relayOFF(pid, v+1)
+                    lastSumManTimes = sumManTimes
+                scr.addstr(27, 0, "dtNowMin: " + str(dtNowMin) + "  manStart + sumManTimes: " + str(manStart+sumManTimes))
+                if dtNowMin >= manStart + sumManTimes:
+                    runManMode = False
+            else:
+                for v in range(len(manTimes)):
+                    scr.addstr(11+v, 0, "ManValve " + str(v) + ": OFF      ")
+                    RELAY.relayOFF(pid, v+1)       
+            # if runManMode            
         else:
             gtMin = 0
             ltMin = 0
