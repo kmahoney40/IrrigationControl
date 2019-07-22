@@ -152,10 +152,10 @@ def main(scr):
                 for v in range(len(manTimes)):
                     sumManTimes += manTimes[v]
                     if manStart + lastSumManTimes <= dtNowMin and dtNowMin < manStart + sumManTimes:     
-                        scr.addstr(11+v, 0, "ManValve " + str(v) + ": ON       ")
+                        scr.addstr(11+v, 0, "Valve " + str(v) + ": ON       ")
                         RELAY.relayON(pid, v+1)
                     else:
-                        scr.addstr(11+v, 0, "ManValve " + str(v) + ": OFF      ")
+                        scr.addstr(11+v, 0, "Valve " + str(v) + ": OFF      ")
                         RELAY.relayOFF(pid, v+1)
                     lastSumManTimes = sumManTimes
                 scr.addstr(27, 0, "dtNowMin: " + str(dtNowMin) + "  manStart + sumManTimes: " + str(manStart+sumManTimes))
@@ -163,7 +163,7 @@ def main(scr):
                     runManMode = False
             else:
                 for v in range(len(manTimes)):
-                    scr.addstr(11+v, 0, "ManValve " + str(v) + ": OFF      ")
+                    scr.addstr(11+v, 0, "Valve " + str(v) + ": OFF      ")
                     RELAY.relayOFF(pid, v+1)       
             # if runManMode            
         else:
