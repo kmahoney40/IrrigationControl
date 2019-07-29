@@ -5,9 +5,7 @@ import datetime
 import array
 import json
 import piplates.RELAYplate as RELAY
-
-#import piplates.RELAYplate as RELAY
-
+import logger
 
 
 def main(scr):
@@ -20,6 +18,8 @@ def main(scr):
     scr.keypad(1)
     scr.nodelay(1)
 
+    log = logger.logger()
+    log.log("main started")
 
     # Read conf file
     confFile = open("irragation.conf", "r")
@@ -29,7 +29,12 @@ def main(scr):
     pid = confJson["pid"]        
     runTimes = confJson["runTimes"]
     scr.addstr(1, 0, "startTime: " + str(confJson["startTime"]) + " pid:" + str(pid))
-    
+   
+    # show run times on the right side of display, runTimes is only read at startup
+    for v in range(len(runTimes)):
+        scr.addstr(3+v, 32, "Valve " + str(v) + ":")
+        for d in range(len(runTimes[0])):
+            scr.addstr(3+v, 40+d*3, str(runTimes[v][d]).rjust(3))
 
     # 24 hour loal time 600 = 6am, 1450 = 2:50 pm
     startTime = confJson["startTime"]
@@ -45,12 +50,13 @@ def main(scr):
     for v in range(len(runTimes)):
         RELAY.relayOFF(pid, v+1)
 
-    scr.addstr(29, 0, "Press 'q' to quit or 'm' to enter manual mode, 'r' to run manual mode     ")
+    scr.addstr(29, 0, "Press 'q' to quit or 'm' to enter manual mode")
     keepGoing = True
     manualMode = 0
     runManMode = False
     manualStart = 0
     while keepGoing:
+        #log.log("keepGoing")
         dtn = datetime.datetime.now()
 
         scr.addstr(0, 0, "dtn: " + str(dtn))
@@ -70,7 +76,8 @@ def main(scr):
             if chr(c) == 'm':
                 manualMode = 1
                 manStart = 0
-                scr.addstr(29, 0, "Press 'Esc' to return to standard mode, 'q' to quit            ")
+                scr.addstr(29, 0, "Press 'Esc' to return to standard mode, 'r' to run manual mode, 'q' to quit")
+                scr.clrtoeol()
             if chr(c) == 'r':
                 if manualMode:
                     runManMode = True
@@ -79,7 +86,8 @@ def main(scr):
                 runManMode = False
                 for v in range(len(manTimes)):
                     RELAY.relayOFF(pid, v+1)       
-                scr.addstr(29, 0, "Press 'q' to quit or 'm' to enter manual mode      ")
+                scr.addstr(29, 0, "Press 'q' to quit or 'm' to enter manual mode")
+                scr.clrtoeol()
             if chr(c) == 'a':
                 if manTimes[0] < 100:
                     manTimes[0] += 1
@@ -137,12 +145,10 @@ def main(scr):
             if manualMode == 1:
                 manualMode += 1
                 manStart = dtNowMin
-                for v in range(14):
-                    scr.addstr(6 + v, 0, "                                         ")
             
             scr.addstr(8, 0, "Up: 'a' 's' 'd' 'f' 'g' 'h' 'j'")
             for v in range(len(manTimes)):
-                scr.addstr(9, 4 + v*4, str(manTimes[v])) 
+                scr.addstr(9, 3 + v*4, str(manTimes[v]).rjust(3)) 
             scr.addstr(10, 0, "Dn: 'z' 'x' 'c' 'v' 'b' 'n' 'm'")
             scr.addstr(28, 0, "runManMode: " + str(runManMode) + "  ")
 
@@ -151,22 +157,27 @@ def main(scr):
                 lastSumManTimes = 0
                 for v in range(len(manTimes)):
                     sumManTimes += manTimes[v]
+                    ltMin = manStart + lastSumManTimes
+                    gtMin = manStart + sumManTimes
                     if manStart + lastSumManTimes <= dtNowMin and dtNowMin < manStart + sumManTimes:     
-                        scr.addstr(11+v, 0, "Valve " + str(v) + ": ON       ")
+                        scr.addstr(11+v, 0, "Valve "+str(v) + ": ON - Time: " + str(gtMin-dtNowMin))
                         RELAY.relayON(pid, v+1)
                     else:
-                        scr.addstr(11+v, 0, "Valve " + str(v) + ": OFF      ")
+                        scr.addstr(11+v, 0, "Valve " + str(v) + ": OFF")
+                        scr.clrtoeol()
                         RELAY.relayOFF(pid, v+1)
                     lastSumManTimes = sumManTimes
-                scr.addstr(27, 0, "dtNowMin: " + str(dtNowMin) + "  manStart + sumManTimes: " + str(manStart+sumManTimes))
                 if dtNowMin >= manStart + sumManTimes:
                     runManMode = False
             else:
                 for v in range(len(manTimes)):
-                    scr.addstr(11+v, 0, "Valve " + str(v) + ": OFF      ")
+                    scr.addstr(11+v, 0, "Valve " + str(v) + ": OFF")
+                    scr.clrtoeol()
                     RELAY.relayOFF(pid, v+1)       
             # if runManMode            
         else:
+            scr.move(28,0)
+            scr.clrtoeol()
             gtMin = 0
             ltMin = 0
             if dtNowMin >= 0: 
@@ -174,12 +185,12 @@ def main(scr):
                     gtMin += runTimes[v][dtDay]
                     if v > 0:
                         ltMin += runTimes[v-1][dtDay]
-                    scr.addstr(13 + v, 0, "ltMin: " + str(ltMin) + ", gtMin: " + str(gtMin))
                     if ltMin <= dtNowMin and dtNowMin < gtMin:
-                        scr.addstr(6 + v, 0, "Valve" + str(v) + "  on")
+                        scr.addstr(11+v, 0, "Valve " + str(v) + ": ON - Time: "+ str(gtMin-dtNowMin))
                         RELAY.relayON(pid, v+1)
                     else:
-                        scr.addstr(6 + v, 0, "Valve" + str(v) + " off")
+                        scr.addstr(11+v, 0, "Valve " + str(v) + ": OFF")
+                        scr.clrtoeol()
                         RELAY.relayOFF(pid, v+1)
         # if manualModd: else:
 

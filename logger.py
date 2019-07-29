@@ -1,24 +1,26 @@
 import logging
+import datetime
 
-class Log:
+class logger:
     def __init__(self):
-        new_day = datetime.date.today()
-        today = datetime.date.today()
-        log_file = "irrigation_" + str(today) + ".log"
-        loggind.basicConfig(filename=log_file)
+        self.today = datetime.date.today()
+        log_file = "water_" + str(self.today) + ".log"
+        logging.basicConfig(filename=log_file, level=logging.DEBUG)
     #def __init__
 
-    def log(msg, lvl="INFO"):
+    def log(self, msg, lvl="i"):
         new_day = datetime.date.today()
-        if new_day != today:
-            today = new_day
-            log_file = "irrigation_" + str(today) + ".log"
+        dtnow = str(datetime.datetime.now()) + " "
+        if new_day != self.today:
+            self.today = new_day
+            log_file = "water_" + str(self.today) + ".log"
             loggind.basicConfig(filename=log_file)
-        if lvl == "INFO":
-            logging.info(
-        if lvl == "DEBUG":
-
-        if lvl == "WARNING":
+        if lvl.lower() == "i":
+            logging.info(dtnow + msg)
+        if lvl.lower() == "d":
+            logging.info(dtnow + msg)
+        if lvl.lower() == "w":
+            logging.info(dtnow + msg)
 
     # def log()
 # class Log
