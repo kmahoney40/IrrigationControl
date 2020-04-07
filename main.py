@@ -6,7 +6,7 @@ import array
 import json
 import piplates.RELAYplate as RELAY
 import logger
-
+import smtplib
 
 def main(scr):
     import time
@@ -132,6 +132,24 @@ def main(scr):
             if chr(c) == 'm':
                 if manTimes[6]:
                     manTimes[6] -= 1
+
+            if chr(c) == 'k':
+                sender = 'kmahoney40@hotmail.com'
+                receivers = ['kmahoney40@hotmail.com']
+
+                message = """From: From Person kmahoney40@hotmail.com
+                To: To Person kmahoney40@hotmail.com
+                Subject: SMTP e-mail test
+
+                This is a test e-mail message.
+                """
+
+                try:
+                    smtpObj = smtplib.SMTP('localhost')
+                    smtpObj.sendmail(sender, receivers, message)         
+                    print "Successfully sent email"
+                except SMTPException:
+                    print "Error: unable to send email"
 
         
         # Clear extra characters for negative and 3 or 4 digit times
