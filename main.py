@@ -140,6 +140,10 @@ def main(scr):
             if chr(c) == 'k':
                 m = mail.mail()
                 m.send_mail()
+            
+            if chr(c) == 'K':
+                m = mail.mail()
+                m.send_mail("Special Mail", "WOOT")
 
         
         # Clear extra characters for negative and 3 or 4 digit times
