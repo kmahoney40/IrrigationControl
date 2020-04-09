@@ -6,7 +6,9 @@ import array
 import json
 import piplates.RELAYplate as RELAY
 import logger
-
+import smtplib
+#import socket
+import mail
 
 def main(scr):
     import time
@@ -55,6 +57,8 @@ def main(scr):
     manualMode = 0
     runManMode = False
     manualStart = 0
+    sendMail = True
+
     while keepGoing:
         #log.log("keepGoing")
         dtn = datetime.datetime.now()
@@ -133,6 +137,10 @@ def main(scr):
                 if manTimes[6]:
                     manTimes[6] -= 1
 
+            if chr(c) == 'k':
+                m = mail.mail()
+                m.send_mail()
+
         
         # Clear extra characters for negative and 3 or 4 digit times
         scr.addstr(2, 0, "dtNowMin: " + str(dtNowMin) + "      ")
@@ -176,11 +184,22 @@ def main(scr):
                     RELAY.relayOFF(pid, v+1)       
             # if runManMode            
         else:
+            
+            scr.addstr(8, 0, "                               ")
+            scr.addstr(9, 0, "                               ")
+            scr.addstr(10, 0, "                               ")
+            
             scr.move(28,0)
             scr.clrtoeol()
             gtMin = 0
             ltMin = 0
             if dtNowMin >= 0: 
+
+                if(sendMail):
+                    m = mail.mail()
+                    m.send_mail()
+                    sendMail = False
+
                 for v in range(len(runTimes)):
                     gtMin += runTimes[v][dtDay]
                     if v > 0:
@@ -192,6 +211,8 @@ def main(scr):
                         scr.addstr(11+v, 0, "Valve " + str(v) + ": OFF")
                         scr.clrtoeol()
                         RELAY.relayOFF(pid, v+1)
+            else:
+                sendMail = True
         # if manualModd: else:
 
         scr.refresh()
