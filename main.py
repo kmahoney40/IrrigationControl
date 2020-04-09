@@ -7,6 +7,8 @@ import json
 import piplates.RELAYplate as RELAY
 import logger
 import smtplib
+#import socket
+import mail
 
 def main(scr):
     import time
@@ -55,6 +57,8 @@ def main(scr):
     manualMode = 0
     runManMode = False
     manualStart = 0
+    sendMail = True
+
     while keepGoing:
         #log.log("keepGoing")
         dtn = datetime.datetime.now()
@@ -134,22 +138,8 @@ def main(scr):
                     manTimes[6] -= 1
 
             if chr(c) == 'k':
-                sender = 'kmahoney40@hotmail.com'
-                receivers = ['kmahoney40@hotmail.com']
-
-                message = """From: From Person kmahoney40@hotmail.com
-                To: To Person kmahoney40@hotmail.com
-                Subject: SMTP e-mail test
-
-                This is a test e-mail message.
-                """
-
-                try:
-                    smtpObj = smtplib.SMTP('localhost')
-                    smtpObj.sendmail(sender, receivers, message)         
-                    print "Successfully sent email"
-                except SMTPException:
-                    print "Error: unable to send email"
+                m = mail.mail()
+                m.send_mail()
 
         
         # Clear extra characters for negative and 3 or 4 digit times
@@ -194,11 +184,22 @@ def main(scr):
                     RELAY.relayOFF(pid, v+1)       
             # if runManMode            
         else:
+            
+            scr.addstr(8, 0, "                               ")
+            scr.addstr(9, 0, "                               ")
+            scr.addstr(10, 0, "                               ")
+            
             scr.move(28,0)
             scr.clrtoeol()
             gtMin = 0
             ltMin = 0
             if dtNowMin >= 0: 
+
+                if(sendMail):
+                    m = mail.mail()
+                    m.send_mail()
+                    sendMail = False
+
                 for v in range(len(runTimes)):
                     gtMin += runTimes[v][dtDay]
                     if v > 0:
@@ -210,6 +211,8 @@ def main(scr):
                         scr.addstr(11+v, 0, "Valve " + str(v) + ": OFF")
                         scr.clrtoeol()
                         RELAY.relayOFF(pid, v+1)
+            else:
+                sendMail = True
         # if manualModd: else:
 
         scr.refresh()
