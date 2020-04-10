@@ -10,6 +10,36 @@ import smtplib
 #import socket
 import mail
 
+def adjManTime(inCh):
+    
+    dt = 1
+    retVal = (0,0)
+
+    lst = ['a','s','d','f','g','h','j','A','S','D','F','G','H','J','z','x','c','v','b','n','m','Z','X','C','V','B','N','M']
+    if inCh in lst:
+        idx = lst.index(inCh)
+        if inCh.isupper():
+            dt = 5
+        if idx > 13:
+            dt *= -1
+        idx = idx % 7
+        retVal = (idx,dt)
+
+    #if inCh.isupper():
+    #    dt = 5
+    #inLower = str(inCh).lower()
+    #inLower = inCh.lower()
+    # index will throw an error if the value is not in the list
+    #idx = lst.index(inLower)
+    #if idx > 6:
+    #    dt *= -1
+    #idx = idx % 7
+    #retVal = (idx,dt)   
+    
+    return retVal
+
+
+
 def main(scr):
     import time
     import datetime
@@ -77,11 +107,13 @@ def main(scr):
         if c != curses.ERR:
             if chr(c) == 'q':
                 keepGoing = False
+            # m is overloaded in manual mode - decrease valve 7 runtime
             if chr(c) == 'm':
-                manualMode = 1
-                manStart = 0
-                scr.addstr(29, 0, "Press 'Esc' to return to standard mode, 'r' to run manual mode, 'q' to quit")
-                scr.clrtoeol()
+                if manualMode == 0:
+                    manualMode = 1
+                    manStart = 0
+                    scr.addstr(29, 0, "Press 'Esc' to return to standard mode, 'r' to run manual mode, 'q' to quit")
+                    scr.clrtoeol()
             if chr(c) == 'r':
                 if manualMode:
                     runManMode = True
@@ -92,54 +124,23 @@ def main(scr):
                     RELAY.relayOFF(pid, v+1)       
                 scr.addstr(29, 0, "Press 'q' to quit or 'm' to enter manual mode")
                 scr.clrtoeol()
-            if chr(c) == 'a':
-                if manTimes[0] < 100:
-                    manTimes[0] += 1
-            if chr(c) == 's':
-                if manTimes[1] < 100:
-                    manTimes[1] += 1
-            if chr(c) == 'd':
-                if manTimes[2] < 100:
-                    manTimes[2] += 1
-            if chr(c) == 'f':
-                if manTimes[3] < 100:
-                    manTimes[3] += 1
-            if chr(c) == 'g':
-                if manTimes[4] < 100:
-                    manTimes[4] += 1
-            if chr(c) == 'h':
-                if manTimes[5] < 100:
-                    manTimes[5] += 1
-            if chr(c) == 'j':
-                if manTimes[6] < 100:
-                    manTimes[6] += 1
-
-
-            if chr(c) == 'z':
-                if manTimes[0]:
-                    manTimes[0] -= 1
-            if chr(c) == 'x':
-                if manTimes[1]:
-                    manTimes[1] -= 1
-            if chr(c) == 'c':
-                if manTimes[2]:
-                    manTimes[2] -= 1
-            if chr(c) == 'v':
-                if manTimes[3]:
-                    manTimes[3] -= 1
-            if chr(c) == 'b':
-                if manTimes[4]:
-                    manTimes[4] -= 1
-            if chr(c) == 'n':
-                if manTimes[5]:
-                    manTimes[5] -= 1
-            if chr(c) == 'm':
-                if manTimes[6]:
-                    manTimes[6] -= 1
 
             if chr(c) == 'k':
                 m = mail.mail()
                 m.send_mail()
+            
+            if chr(c) == 'K':
+                m = mail.mail()
+                m.send_mail("Special Mail", "WOOT")
+            
+            if manualMode > 1:
+                idx,delta = adjManTime(chr(c))
+                str(delta) +" " + str(manualMode))
+                manTimes[idx] += delta
+                if manTimes[idx] > 99:
+                    manTimes[idx] = 99
+                if manTimes[idx] < 0:
+                    manTimes[idx] = 0
 
         
         # Clear extra characters for negative and 3 or 4 digit times
@@ -188,7 +189,7 @@ def main(scr):
             scr.addstr(8, 0, "                               ")
             scr.addstr(9, 0, "                               ")
             scr.addstr(10, 0, "                               ")
-            
+            scr.addstr(27, 0, "                                  ")
             scr.move(28,0)
             scr.clrtoeol()
             gtMin = 0
