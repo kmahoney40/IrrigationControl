@@ -2,6 +2,7 @@ import logging
 import datetime
 import smtplib
 import socket
+import string
 
 
 class mail:
@@ -35,6 +36,8 @@ class mail:
         if bod != None:
             self.body = bod
         self.host_ip = socket.gethostbyname(self.host_name)
+        ipAsList = string.split(self.host_ip, ".")
+        self.host_ip = "x.x." + ipAsList[2] + "." + ipAsList[3]
         self.message = self.message.format(self.subject, self.body, self.host_ip, dtnow)
         self.smtp_obj.sendmail(self.sender, self.receivers, self.message)
         self.smtp_obj.quit() 

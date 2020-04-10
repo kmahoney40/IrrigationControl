@@ -7,8 +7,8 @@ import json
 import piplates.RELAYplate as RELAY
 import logger
 import smtplib
-#import socket
 import mail
+from pathlib2 import Path
 
 def adjManTime(inCh):
     
@@ -25,19 +25,7 @@ def adjManTime(inCh):
         idx = idx % 7
         retVal = (idx,dt)
 
-    #if inCh.isupper():
-    #    dt = 5
-    #inLower = str(inCh).lower()
-    #inLower = inCh.lower()
-    # index will throw an error if the value is not in the list
-    #idx = lst.index(inLower)
-    #if idx > 6:
-    #    dt *= -1
-    #idx = idx % 7
-    #retVal = (idx,dt)   
-    
     return retVal
-
 
 
 def main(scr):
@@ -101,7 +89,9 @@ def main(scr):
         dtNowHour = dtNow.hour
         dtNowMin  = dtNow.minute
         dtNowMin += dtNowHour * 60 - stMin
-        
+       
+        if dtNow.minute == 0 and dtNow.second < 10:
+            Path('./TouchFile.txt').touch()
 
         c = scr.getch()
         if c != curses.ERR:
@@ -128,14 +118,14 @@ def main(scr):
             if chr(c) == 'k':
                 m = mail.mail()
                 m.send_mail()
-            
+                Path('./TouchFile.txt').touch()
+
             if chr(c) == 'K':
                 m = mail.mail()
                 m.send_mail("Special Mail", "WOOT")
             
             if manualMode > 1:
                 idx,delta = adjManTime(chr(c))
-                str(delta) +" " + str(manualMode))
                 manTimes[idx] += delta
                 if manTimes[idx] > 99:
                     manTimes[idx] = 99
