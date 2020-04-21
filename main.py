@@ -124,7 +124,6 @@ def main(scr):
             if chr(c) == 'k':
                 rt = getRunTimes(dtDay, runTimes)
                 
-                scr.addstr(30, 0, "trTimes: " + rt)
                 m = mail.mail()
                 m.send_mail(None, rt)
                 Path('./TouchFile.txt').touch()
