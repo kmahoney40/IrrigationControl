@@ -27,6 +27,12 @@ def adjManTime(inCh):
 
     return retVal
 
+def getRunTimes(day, times):
+ strTimes = "Today's run times: "
+    for idx in range(len(times)):
+        strTimes += str(times[idx][day]) + ", "
+    strTimes = strTimes[:len(strTimes) - 2]
+    return strTimes
 
 def main(scr):
     import time
@@ -116,8 +122,11 @@ def main(scr):
                 scr.clrtoeol()
 
             if chr(c) == 'k':
+                rt = getRunTimes(dtDay, runTimes)
+                
+                scr.addstr(30, 0, "trTimes: " + rt)
                 m = mail.mail()
-                m.send_mail()
+                m.send_mail(None, rt)
                 Path('./TouchFile.txt').touch()
 
             if chr(c) == 'K':
@@ -187,8 +196,9 @@ def main(scr):
             if dtNowMin >= 0: 
 
                 if(sendMail):
+                    rt = getRunTimes(dtDay, runTimes)
                     m = mail.mail()
-                    m.send_mail()
+                    m.send_mail(None, rt)
                     sendMail = False
 
                 for v in range(len(runTimes)):
