@@ -28,7 +28,7 @@ def adjManTime(inCh):
     return retVal
 
 def getRunTimes(day, times):
- strTimes = "Today's run times: "
+    strTimes = "Today's run times: "
     for idx in range(len(times)):
         strTimes += str(times[idx][day]) + ", "
     strTimes = strTimes[:len(strTimes) - 2]
