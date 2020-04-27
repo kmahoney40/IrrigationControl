@@ -57,6 +57,7 @@ def main(scr):
     scr.addstr(1, 0, "startTime: " + str(confJson["startTime"]) + " pid:" + str(pid))
    
     # show run times on the right side of display, runTimes is only read at startup
+    scr.addstr(2, 42, "M  T  W  T  F  S  S")
     for v in range(len(runTimes)):
         scr.addstr(3+v, 32, "Valve " + str(v) + ":")
         for d in range(len(runTimes[0])):
