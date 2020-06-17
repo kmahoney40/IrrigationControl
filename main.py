@@ -214,7 +214,7 @@ def main(scr):
                         RELAY.relayOFF(pid, v+1)
             else:
                 sendMail = True
-        # if manualModd: else:
+        # if manualMode: else:
 
         scr.refresh()
         time.sleep(1)
