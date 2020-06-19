@@ -105,7 +105,7 @@ def main(scr):
         if escapekey:
             c = 27
             escapekey = False
-        if c != curses.ERR or escapekey:
+        if c != curses.ERR:
             if chr(c) == 'q':
                 keepGoing = False
             # m is overloaded in manual mode - decrease valve 7 runtime
@@ -118,10 +118,9 @@ def main(scr):
             if chr(c) == 'r':
                 if manualMode:
                     runManMode = True
-            if c == 27 or escapekey:
+            if c == 27:
                 manualMode = 0
                 runManMode = False
-                escapekey = False
                 for v in range(len(manTimes)):
                     RELAY.relayOFF(pid, v+1)       
                 scr.addstr(29, 0, "Press 'q' to quit or 'm' to enter manual mode")
