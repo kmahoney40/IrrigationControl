@@ -83,6 +83,7 @@ def main(scr):
     runManMode = False
     manualStart = 0
     sendMail = True
+    escapekey = False
 
     while keepGoing:
         #log.log("keepGoing")
@@ -101,7 +102,10 @@ def main(scr):
             Path('./TouchFile.txt').touch()
 
         c = scr.getch()
-        if c != curses.ERR:
+        if escapekey:
+            c = 27
+            escapekey = False
+        if c != curses.ERR or escapekey:
             if chr(c) == 'q':
                 keepGoing = False
             # m is overloaded in manual mode - decrease valve 7 runtime
@@ -114,9 +118,10 @@ def main(scr):
             if chr(c) == 'r':
                 if manualMode:
                     runManMode = True
-            if c == 27:
+            if c == 27 or escapekey:
                 manualMode = 0
                 runManMode = False
+                escapekey = False
                 for v in range(len(manTimes)):
                     RELAY.relayOFF(pid, v+1)       
                 scr.addstr(29, 0, "Press 'q' to quit or 'm' to enter manual mode")
@@ -177,6 +182,8 @@ def main(scr):
                     lastSumManTimes = sumManTimes
                 if dtNowMin >= manStart + sumManTimes:
                     runManMode = False
+                    manualMode = 0
+                    escapekey = True
             else:
                 for v in range(len(manTimes)):
                     scr.addstr(11+v, 0, "Valve " + str(v) + ": OFF")
@@ -188,7 +195,7 @@ def main(scr):
             scr.addstr(8, 0, "                               ")
             scr.addstr(9, 0, "                               ")
             scr.addstr(10, 0, "                               ")
-            scr.addstr(27, 0, "                                  ")
+
             scr.move(28,0)
             scr.clrtoeol()
             gtMin = 0
