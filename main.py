@@ -27,6 +27,12 @@ def adjManTime(inCh):
 
     return retVal
 
+def getRunTimes(day, times):
+    strTimes = "Today's run times: "
+    for idx in range(len(times)):
+        strTimes += str(times[idx][day]) + ", "
+    strTimes = strTimes[:len(strTimes) - 2]
+    return strTimes
 
 def main(scr):
     import time
@@ -51,6 +57,7 @@ def main(scr):
     scr.addstr(1, 0, "startTime: " + str(confJson["startTime"]) + " pid:" + str(pid))
    
     # show run times on the right side of display, runTimes is only read at startup
+    scr.addstr(2, 42, "M  T  W  T  F  S  S")
     for v in range(len(runTimes)):
         scr.addstr(3+v, 32, "Valve " + str(v) + ":")
         for d in range(len(runTimes[0])):
@@ -76,6 +83,7 @@ def main(scr):
     runManMode = False
     manualStart = 0
     sendMail = True
+    escapekey = False
 
     while keepGoing:
         #log.log("keepGoing")
@@ -94,6 +102,9 @@ def main(scr):
             Path('./TouchFile.txt').touch()
 
         c = scr.getch()
+        if escapekey:
+            c = 27
+            escapekey = False
         if c != curses.ERR:
             if chr(c) == 'q':
                 keepGoing = False
@@ -116,8 +127,10 @@ def main(scr):
                 scr.clrtoeol()
 
             if chr(c) == 'k':
+                rt = getRunTimes(dtDay, runTimes)
+                
                 m = mail.mail()
-                m.send_mail()
+                m.send_mail(None, rt)
                 Path('./TouchFile.txt').touch()
 
             if chr(c) == 'K':
@@ -168,6 +181,8 @@ def main(scr):
                     lastSumManTimes = sumManTimes
                 if dtNowMin >= manStart + sumManTimes:
                     runManMode = False
+                    manualMode = 0
+                    escapekey = True
             else:
                 for v in range(len(manTimes)):
                     scr.addstr(11+v, 0, "Valve " + str(v) + ": OFF")
@@ -179,7 +194,7 @@ def main(scr):
             scr.addstr(8, 0, "                               ")
             scr.addstr(9, 0, "                               ")
             scr.addstr(10, 0, "                               ")
-            scr.addstr(27, 0, "                                  ")
+
             scr.move(28,0)
             scr.clrtoeol()
             gtMin = 0
@@ -187,8 +202,9 @@ def main(scr):
             if dtNowMin >= 0: 
 
                 if(sendMail):
+                    rt = getRunTimes(dtDay, runTimes)
                     m = mail.mail()
-                    m.send_mail()
+                    m.send_mail(None, rt)
                     sendMail = False
 
                 for v in range(len(runTimes)):
@@ -204,7 +220,7 @@ def main(scr):
                         RELAY.relayOFF(pid, v+1)
             else:
                 sendMail = True
-        # if manualModd: else:
+        # if manualMode: else:
 
         scr.refresh()
         time.sleep(1)
